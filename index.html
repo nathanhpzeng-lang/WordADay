@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WordADay — daily vocabulary practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A22;
+    --ink-panel:#22352A;
+    --paper:#EFE7D0;
+    --paper-soft:#F6F0DE;
+    --brass:#B8863B;
+    --brass-dark:#96692B;
+    --text-ink:#26332B;
+    --text-muted:#5B6A5A;
+    --line:#D8CBA0;
+    --line-dark:rgba(239,231,208,0.22);
+    --moss:#4F7A5B;
+    --brick:#A24B3B;
+    --cat-business:#6B7FA0;
+    --cat-academic:#7A8C5E;
+    --cat-reasoning:#8C6B9A;
+    --cat-description:#C79A4B;
+    --cat-process:#5E8C86;
+    --radius:5px;
+    --serif:'Fraunces', Georgia, serif;
+    --sans:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--sans);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+  button{font-family:inherit;cursor:pointer;}
+  input{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
+
+  .wrap{max-width:700px;margin:0 auto;padding:2.25rem 1.25rem 5rem;}
+
+  /* Header */
+  .app-header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1.75rem;}
+  .app-title{font-family:var(--serif);font-size:2rem;font-weight:600;margin:0 0 0.35rem;letter-spacing:-0.01em;}
+  .app-sub{font-size:0.9rem;color:rgba(239,231,208,0.62);margin:0;max-width:34ch;}
+  .icon-btn{
+    background:transparent;border:1px solid var(--line-dark);color:var(--paper);
+    width:38px;height:38px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .icon-btn:hover{background:rgba(239,231,208,0.08);}
+
+  /* Stats row */
+  .stats-row{display:flex;gap:0.75rem;margin-bottom:1.75rem;}
+  .stat{
+    flex:1;background:var(--ink-panel);border:1px solid var(--line-dark);border-radius:var(--radius);
+    padding:0.7rem 0.85rem;
+  }
+  .stat strong{display:block;font-family:var(--serif);font-size:1.5rem;font-weight:600;line-height:1.1;}
+  .stat span{display:block;font-size:0.75rem;color:rgba(239,231,208,0.6);margin-top:0.2rem;}
+
+  /* Tabs */
+  .tabs{display:flex;gap:1.5rem;border-bottom:1px solid var(--line-dark);margin-bottom:1.75rem;}
+  .tab-btn{
+    background:none;border:none;color:rgba(239,231,208,0.55);font-size:0.95rem;font-weight:500;
+    padding:0 0 0.75rem;border-bottom:2px solid transparent;margin-bottom:-1px;
+  }
+  .tab-btn.active{color:var(--paper);border-bottom-color:var(--brass);}
+  .tab-btn:hover{color:var(--paper);}
+
+  /* Section heads */
+  .section-lede{margin-bottom:1.25rem;}
+  .section-date{font-size:0.85rem;color:rgba(239,231,208,0.55);margin:0 0 0.6rem;}
+  .progress-line{display:flex;align-items:center;gap:0.6rem;font-size:0.85rem;color:rgba(239,231,208,0.75);margin-bottom:0.25rem;}
+  .progress-track{flex:1;height:4px;background:rgba(239,231,208,0.15);border-radius:2px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--brass);border-radius:2px;}
+  .review-note{
+    font-size:0.85rem;color:rgba(239,231,208,0.7);background:var(--ink-panel);
+    border:1px solid var(--line-dark);border-radius:var(--radius);padding:0.6rem 0.85rem;margin-bottom:1.25rem;
+  }
+
+  /* Word cards */
+  .card{
+    background:var(--paper);color:var(--text-ink);border-radius:var(--radius);
+    padding:1.25rem 1.35rem 1.1rem;margin-bottom:1rem;border-left:4px solid var(--accent, var(--brass));
+    box-shadow:3px 3px 0 rgba(0,0,0,0.14);
+  }
+  .card.confirmed{opacity:0.82;}
+  .card-eyebrow{font-size:0.72rem;color:var(--text-muted);margin-bottom:0.5rem;}
+  .card-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:0.5rem 0.6rem;margin-bottom:0.15rem;}
+  .card-word{font-family:var(--serif);font-size:2rem;font-weight:600;line-height:1.1;}
+  .card-meta{font-size:0.85rem;color:var(--text-muted);font-style:italic;}
+  .card-cat{font-size:0.78rem;font-weight:500;margin-bottom:0.85rem;}
+  .card-def{font-size:1rem;margin:0 0 0.75rem;}
+  .card-example{
+    font-style:italic;font-size:0.95rem;color:var(--text-ink);margin:0 0 0.75rem;
+    padding-left:0.75rem;border-left:2px solid var(--accent, var(--brass));
+  }
+  .card-syn{font-size:0.85rem;color:var(--text-muted);margin:0 0 0.75rem;}
+  .card-syn b{color:var(--text-ink);font-weight:500;}
+  .card-tip{font-size:0.85rem;color:var(--text-muted);margin:0 0 1rem;}
+  .card-tip b{color:var(--text-ink);font-weight:500;}
+  .card-footer{display:flex;justify-content:flex-end;}
+
+  .btn{
+    border-radius:var(--radius);padding:0.55rem 1.1rem;font-size:0.88rem;font-weight:500;border:none;
+  }
+  .btn-primary{background:var(--brass);color:var(--text-ink);}
+  .btn-primary:hover{background:var(--brass-dark);}
+  .btn-ghost-dark{background:transparent;border:1px solid var(--line-dark);color:var(--paper);}
+  .btn-ghost-dark:hover{background:rgba(239,231,208,0.08);}
+  .btn-ghost-light{background:transparent;border:1px solid var(--line);color:var(--text-ink);}
+  .btn-ghost-light:hover{background:rgba(0,0,0,0.04);}
+  .btn-done{background:none;border:1px solid var(--moss);color:var(--moss);padding:0.55rem 1.1rem;border-radius:var(--radius);font-size:0.88rem;font-weight:500;}
+  .btn-danger{background:transparent;border:1px solid var(--brick);color:var(--brick);}
+  .btn-danger:hover{background:rgba(162,75,59,0.12);}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:0.5;cursor:default;}
+
+  /* Empty state */
+  .empty{
+    background:var(--ink-panel);border:1px solid var(--line-dark);border-radius:var(--radius);
+    padding:2rem 1.5rem;text-align:left;
+  }
+  .empty p{margin:0 0 0.25rem;color:rgba(239,231,208,0.8);}
+  .empty p:first-child{font-family:var(--serif);font-size:1.15rem;color:var(--paper);}
+
+  /* Review / quiz */
+  .quiz-card{background:var(--paper);color:var(--text-ink);border-radius:var(--radius);padding:1.5rem;box-shadow:3px 3px 0 rgba(0,0,0,0.14);}
+  .quiz-progress{font-size:0.8rem;color:var(--text-muted);margin-bottom:0.9rem;}
+  .quiz-prompt{font-size:1.05rem;margin:0 0 1.25rem;}
+  .quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;}
+  @media(max-width:520px){.quiz-options{grid-template-columns:1fr;}}
+  .quiz-opt{
+    background:var(--paper-soft);border:1px solid var(--line);border-radius:var(--radius);
+    padding:0.75rem 0.9rem;text-align:left;font-size:0.95rem;color:var(--text-ink);
+  }
+  .quiz-opt:hover:not(:disabled){border-color:var(--brass);}
+  .quiz-opt.correct{background:rgba(79,122,91,0.16);border-color:var(--moss);}
+  .quiz-opt.incorrect{background:rgba(162,75,59,0.14);border-color:var(--brick);}
+  .quiz-opt:disabled{cursor:default;}
+  .quiz-feedback{margin-top:1rem;font-size:0.9rem;}
+  .quiz-feedback.good{color:var(--moss);}
+  .quiz-feedback.bad{color:var(--brick);}
+  .quiz-actions{margin-top:1.25rem;display:flex;justify-content:flex-end;}
+  .quiz-summary-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1rem;}
+  .quiz-summary-row strong{font-family:var(--serif);font-size:2.25rem;}
+  .review-list-item{font-size:0.9rem;padding:0.5rem 0;border-bottom:1px solid var(--line);}
+  .review-list-item:last-child{border-bottom:none;}
+
+  /* Archive */
+  .archive-search{
+    width:100%;padding:0.65rem 0.9rem;border-radius:var(--radius);border:1px solid var(--line-dark);
+    background:var(--ink-panel);color:var(--paper);font-size:0.92rem;margin-bottom:1.25rem;
+  }
+  .archive-search::placeholder{color:rgba(239,231,208,0.4);}
+  .archive-row{
+    background:var(--ink-panel);border:1px solid var(--line-dark);border-radius:var(--radius);
+    margin-bottom:0.5rem;overflow:hidden;
+  }
+  .archive-row-head{display:flex;align-items:center;gap:0.65rem;padding:0.75rem 0.9rem;}
+  .cat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--accent);}
+  .archive-word{font-family:var(--serif);font-size:1.05rem;font-weight:600;flex:1;}
+  .archive-badge{font-size:0.72rem;padding:0.15rem 0.55rem;border-radius:20px;border:1px solid rgba(239,231,208,0.3);color:rgba(239,231,208,0.75);}
+  .archive-badge.mastered{border-color:var(--brass);color:var(--brass);}
+  .archive-caret{font-size:0.7rem;color:rgba(239,231,208,0.5);}
+  .archive-detail{padding:0 0.9rem 1rem 2.3rem;color:var(--paper);}
+  .archive-detail .card-def, .archive-detail .card-example, .archive-detail .card-syn, .archive-detail .card-tip{color:inherit;}
+  .archive-detail .card-example{border-left-color:var(--accent);}
+  .archive-detail .card-syn b, .archive-detail .card-tip b{color:var(--paper);}
+  .archive-detail .card-syn, .archive-detail .card-tip{color:rgba(239,231,208,0.7);}
+  .archive-count{font-size:0.85rem;color:rgba(239,231,208,0.55);margin-bottom:1rem;}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(10,16,12,0.62);display:flex;align-items:center;justify-content:center;
+    padding:1.25rem;z-index:20;
+  }
+  .modal{
+    background:var(--paper);color:var(--text-ink);border-radius:var(--radius);max-width:420px;width:100%;
+    padding:1.5rem;
+  }
+  .modal h2{font-family:var(--serif);font-size:1.3rem;margin:0 0 0.3rem;}
+  .modal p.hint{font-size:0.85rem;color:var(--text-muted);margin:0 0 1.1rem;}
+  .wpd-row{display:flex;gap:0.5rem;margin-bottom:1.5rem;}
+  .wpd-btn{
+    flex:1;padding:0.6rem 0;border-radius:var(--radius);border:1px solid var(--line);background:var(--paper-soft);
+    font-size:1rem;color:var(--text-ink);font-weight:500;
+  }
+  .wpd-btn.active{background:var(--brass);border-color:var(--brass);color:var(--text-ink);}
+  .modal-divider{height:1px;background:var(--line);margin:1.25rem 0;}
+  .modal-close-row{display:flex;justify-content:flex-end;margin-top:1.25rem;}
+  .danger-zone p{font-size:0.85rem;color:var(--text-muted);margin:0 0 0.75rem;}
+  .confirm-row{display:flex;gap:0.6rem;margin-top:0.6rem;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function(){
+
+  /* ---------- Word data ---------- */
+  var CATS = {
+    business:{name:"Business & professional", accent:"var(--cat-business)"},
+    academic:{name:"Academic & analytical", accent:"var(--cat-academic)"},
+    reasoning:{name:"Argument & reasoning", accent:"var(--cat-reasoning)"},
+    description:{name:"Description & nuance", accent:"var(--cat-description)"},
+    process:{name:"Change & process", accent:"var(--cat-process)"}
+  };
+
+  var BY_CAT = {
+    business:[
+      {word:"Leverage",pos:"v.",phon:"LEV-er-ij",def:"To use an existing resource or advantage to gain a greater effect.",ex:"The startup leveraged its early user base to negotiate better terms with investors.",syn:["exploit","capitalize on","harness"],tip:"Pairs well with strengths, relationships, or data. Leverage a resource, don't just use it."},
+      {word:"Streamline",pos:"v.",phon:"STREEM-line",def:"To make a process simpler and more efficient by removing unnecessary steps.",ex:"Switching to a shared calendar streamlined how the team scheduled client calls.",syn:["simplify","optimize","expedite"],tip:"Describes cutting friction from a process, not just making something faster."},
+      {word:"Mitigate",pos:"v.",phon:"MIT-ih-gayt",def:"To make a problem or risk less severe.",ex:"Regular backups mitigate the damage a single hardware failure can cause.",syn:["alleviate","lessen","temper"],tip:"You mitigate a risk or effect. Some of it usually remains, unlike when you solve something."},
+      {word:"Incentivize",pos:"v.",phon:"in-SEN-tih-vyze",def:"To offer a reward that encourages a particular behavior.",ex:"The company incentivized early sign-ups with a discount that expired at midnight.",syn:["motivate","encourage","reward"],tip:"Common in management and policy writing. In casual speech, encourage often sounds more natural."},
+      {word:"Optimize",pos:"v.",phon:"OP-tih-myze",def:"To make something as effective or functional as possible.",ex:"She optimized the checkout flow, cutting the average purchase time in half.",syn:["refine","enhance","fine-tune"],tip:"Implies improving toward a best possible state, not just making something better."},
+      {word:"Proactive",pos:"adj.",phon:"pro-AK-tiv",def:"Acting in advance to deal with an expected difficulty, rather than reacting after it happens.",ex:"A proactive maintenance schedule caught the leak before it reached the server room.",syn:["anticipatory","forward-looking","preemptive"],tip:"The natural opposite of reactive. Useful for describing planning-oriented people or policies."},
+      {word:"Scalable",pos:"adj.",phon:"SKAY-luh-bul",def:"Able to grow or expand without losing effectiveness.",ex:"The founders wanted a scalable business model that would not require hiring at the same rate as growth.",syn:["expandable","extensible","adaptable"],tip:"Common in tech and business. Asks whether a system holds up as size increases."},
+      {word:"Viable",pos:"adj.",phon:"VY-uh-bul",def:"Capable of working successfully; practical.",ex:"After testing three prototypes, only one proved commercially viable.",syn:["workable","feasible","sustainable"],tip:"Judges whether something can actually survive or succeed, not just whether it is possible."},
+      {word:"Feasible",pos:"adj.",phon:"FEE-zuh-bul",def:"Possible to do given available resources and constraints.",ex:"Hiring two more engineers made the original deadline feasible again.",syn:["achievable","practicable","doable"],tip:"Focuses on practicality within real constraints, such as time, money, or staff."},
+      {word:"Prioritize",pos:"v.",phon:"pry-OR-ih-tyze",def:"To treat something as more important than other things.",ex:"The manager asked the team to prioritize customer-facing bugs over internal tools.",syn:["rank","triage","focus on"],tip:"Works best with a clear object, as in prioritize X over Y, or it can sound vague."},
+      {word:"Delegate",pos:"v.",phon:"DEL-ih-gayt",def:"To give a task or responsibility to someone else.",ex:"Learning to delegate freed up the director's time for strategic planning.",syn:["assign","entrust","hand off"],tip:"Signals trust and management skill, unlike dump, which implies avoiding responsibility."},
+      {word:"Consolidate",pos:"v.",phon:"kon-SOL-ih-dayt",def:"To combine several things into a single, more effective whole.",ex:"The bank consolidated four regional systems into one platform.",syn:["merge","unify","combine"],tip:"Common in finance and operations for merging accounts, teams, or systems."},
+      {word:"Expedite",pos:"v.",phon:"EK-spih-dyte",def:"To make a process happen faster.",ex:"Paying the rush fee expedited the passport renewal by three weeks.",syn:["accelerate","hasten","speed up"],tip:"Slightly formal. Natural in emails about shipping, approvals, or paperwork."},
+      {word:"Facilitate",pos:"v.",phon:"fuh-SIL-ih-tayt",def:"To make an action or process easier.",ex:"A shared document facilitated feedback from everyone on the team at once.",syn:["enable","ease","assist"],tip:"Describes removing obstacles, not doing the work yourself. A facilitator guides, not performs."},
+      {word:"Benchmark",pos:"n. / v.",phon:"BENCH-mark",def:"A standard used to measure or compare performance.",ex:"The team benchmarked their load times against three competitor apps.",syn:["standard","yardstick","reference point"],tip:"Works as a noun, as in set a benchmark, or a verb, as in benchmark against."},
+      {word:"Allocate",pos:"v.",phon:"AL-uh-kayt",def:"To distribute resources for a particular purpose.",ex:"The board allocated a third of the budget to research and development.",syn:["assign","apportion","designate"],tip:"Implies a deliberate, planned distribution rather than a casual one."},
+      {word:"Robust",pos:"adj.",phon:"roh-BUST",def:"Strong and unlikely to fail under pressure or stress.",ex:"The app needed a more robust error-handling system before launch.",syn:["sturdy","resilient","sound"],tip:"Applies to systems, arguments, and economies alike. Anything built to hold up under strain."},
+      {word:"Sustainable",pos:"adj.",phon:"suh-STAY-nuh-bul",def:"Able to continue over time without depleting resources or causing harm.",ex:"The company shifted to a subscription model to build a sustainable revenue base.",syn:["enduring","viable","self-sustaining"],tip:"Beyond environmental contexts, it works well for describing pace, funding, or workload."},
+      {word:"Accountable",pos:"adj.",phon:"uh-KOWN-tuh-bul",def:"Responsible for one's actions and required to explain them.",ex:"Each team lead is accountable for their own project's timeline.",syn:["answerable","responsible","liable"],tip:"Stronger than responsible. It implies someone will actually be asked to answer for the outcome."},
+      {word:"Contingency",pos:"n.",phon:"kun-TIN-jun-see",def:"A possible future event that must be planned for.",ex:"The project plan included a contingency for a two-week supplier delay.",syn:["fallback","provision","backup plan"],tip:"Often paired with plan. A contingency plan covers what happens if things go wrong."}
+    ],
+    academic:[
+      {word:"Empirical",pos:"adj.",phon:"em-PEER-ih-kul",def:"Based on observation or experiment rather than theory alone.",ex:"The claim needed empirical support before the journal would publish it.",syn:["observed","evidence-based","experimental"],tip:"The opposite of theoretical. It always implies data was actually collected."},
+      {word:"Paradigm",pos:"n.",phon:"PAIR-uh-dyme",def:"A typical example or pattern of how something works.",ex:"Remote work forced a paradigm shift in how companies measured productivity.",syn:["model","framework","pattern"],tip:"Almost always appears in the phrase paradigm shift, meaning a fundamental change in approach."},
+      {word:"Methodology",pos:"n.",phon:"meth-uh-DOL-uh-jee",def:"The system of methods used in a particular field or study.",ex:"The researchers detailed their methodology so other teams could replicate the results.",syn:["approach","procedure","framework"],tip:"Refers to the overall approach, not a single method. Do not use it as a fancy synonym for method."},
+      {word:"Quantify",pos:"v.",phon:"KWON-tih-fye",def:"To express or measure something as a number.",ex:"It is hard to quantify how much the redesign improved user trust.",syn:["measure","calculate","gauge"],tip:"Useful for flagging when something resists easy measurement, as in difficult to quantify."},
+      {word:"Extrapolate",pos:"v.",phon:"ek-STRAP-uh-layt",def:"To estimate unknown information by extending known data or trends.",ex:"From three months of sales data, she extrapolated a full-year forecast.",syn:["project","infer","forecast"],tip:"Implies reasoning beyond the data you actually have. Useful for flagging assumptions."},
+      {word:"Synthesis",pos:"n.",phon:"SIN-thuh-sis",def:"The combination of separate ideas or elements into a coherent whole.",ex:"Her essay was less a summary than a synthesis of five conflicting studies.",syn:["fusion","integration","amalgamation"],tip:"A synthesis does more than list sources. It connects them into a new argument."},
+      {word:"Framework",pos:"n.",phon:"FRAYM-work",def:"A basic structure of ideas that supports an approach to a problem.",ex:"The team adopted a simple framework for deciding which features to build first.",syn:["structure","system","scaffold"],tip:"Good for describing a reusable approach, not a one-time decision."},
+      {word:"Criteria",pos:"n. (pl.)",phon:"kry-TEER-ee-uh",def:"Standards used to judge or decide something.",ex:"Only two candidates met all the criteria for the senior role.",syn:["standards","benchmarks","requirements"],tip:"The plural of criterion. One criterion, several criteria. Criterias is never correct."},
+      {word:"Parameter",pos:"n.",phon:"puh-RAM-ih-ter",def:"A limit or boundary that defines the scope of something.",ex:"The client set a tight budget as the main parameter for the redesign.",syn:["constraint","limit","boundary"],tip:"In everyday use, parameters means the rules of the game, not a technical variable."},
+      {word:"Variable",pos:"n.",phon:"VAIR-ee-uh-bul",def:"A factor that can change and affect the outcome of a situation.",ex:"Weather was the one variable the event planners could not control.",syn:["factor","element","condition"],tip:"Useful for isolating what is actually causing a result to change."},
+      {word:"Inherent",pos:"adj.",phon:"in-HAIR-ent",def:"Existing as a natural or permanent part of something.",ex:"There is an inherent risk in launching a product before it is fully tested.",syn:["intrinsic","innate","built-in"],tip:"Something inherent cannot be removed without changing the thing itself."},
+      {word:"Intrinsic",pos:"adj.",phon:"in-TRIN-zik",def:"Belonging to something as an essential, natural part of it.",ex:"The job's intrinsic appeal was the creative freedom, not the salary.",syn:["inherent","innate","fundamental"],tip:"Often paired with motivation or value, distinguishing internal reasons from external rewards."},
+      {word:"Holistic",pos:"adj.",phon:"hoh-LIS-tik",def:"Considering the whole of something rather than just its individual parts.",ex:"The coach took a holistic view of the athlete's sleep, diet, and training.",syn:["comprehensive","integrated","all-encompassing"],tip:"Signals that you are deliberately avoiding a narrow, piece-by-piece analysis."},
+      {word:"Theoretical",pos:"adj.",phon:"thee-uh-RET-ih-kul",def:"Based on ideas rather than practical experience or proof.",ex:"The plan looked good on paper, but its savings were still theoretical.",syn:["hypothetical","speculative","conceptual"],tip:"Useful for pointing out that something has not been tested in practice yet."},
+      {word:"Quantitative",pos:"adj.",phon:"KWON-tih-tay-tiv",def:"Relating to amounts that can be measured, rather than qualities.",ex:"The report combined quantitative sales figures with qualitative customer interviews.",syn:["numerical","measurable","statistical"],tip:"Almost always contrasted with qualitative: numbers versus descriptions."},
+      {word:"Rigorous",pos:"adj.",phon:"RIG-er-us",def:"Thorough, careful, and exact.",ex:"The drug went through years of rigorous testing before approval.",syn:["meticulous","stringent","exacting"],tip:"Praises the process itself, not just the outcome. A rigorous method can still be slow."},
+      {word:"Substantiate",pos:"v.",phon:"sub-STAN-shee-ayt",def:"To provide evidence to support a claim.",ex:"The auditor asked her to substantiate every expense over two hundred dollars.",syn:["verify","corroborate","back up"],tip:"More formal than prove. Common in legal, financial, and academic contexts."},
+      {word:"Corroborate",pos:"v.",phon:"kuh-ROB-uh-rayt",def:"To confirm a statement or theory using independent evidence.",ex:"Two separate witnesses corroborated the driver's account of the accident.",syn:["confirm","verify","substantiate"],tip:"Implies the confirming evidence comes from a different, independent source."},
+      {word:"Discrepancy",pos:"n.",phon:"dis-KREP-un-see",def:"A difference between things that should match.",ex:"The finance team flagged a discrepancy between the invoice and the contract.",syn:["inconsistency","mismatch","gap"],tip:"Neutral in tone. It does not assume anyone lied, just that something does not add up yet."},
+      {word:"Anomaly",pos:"n.",phon:"uh-NOM-uh-lee",def:"Something that deviates from what is standard or expected.",ex:"One sensor's reading was an anomaly, so engineers rechecked the equipment before raising an alarm.",syn:["irregularity","outlier","deviation"],tip:"Neutral, not automatically bad. An anomaly just needs explaining, not fixing."}
+    ],
+    reasoning:[
+      {word:"Cogent",pos:"adj.",phon:"KOH-junt",def:"Clear, logical, and convincing.",ex:"She made a cogent case for delaying the launch by two weeks.",syn:["persuasive","compelling","sound"],tip:"Describes the quality of an argument's logic, not the confidence of its delivery."},
+      {word:"Coherent",pos:"adj.",phon:"koh-HEER-ent",def:"Logical and consistent; easy to follow.",ex:"After three rewrites, the proposal finally felt coherent from start to finish.",syn:["logical","consistent","well-structured"],tip:"Focuses on internal consistency. A coherent argument does not contradict itself."},
+      {word:"Plausible",pos:"adj.",phon:"PLAW-zih-bul",def:"Seeming reasonable or probable, though not yet proven.",ex:"Both explanations for the delay seemed plausible until the logs came in.",syn:["credible","believable","conceivable"],tip:"Weaker than true. Something plausible could still turn out to be wrong."},
+      {word:"Refute",pos:"v.",phon:"rih-FYOOT",def:"To prove a statement or theory wrong using evidence or argument.",ex:"New data refuted the earlier claim that the drug had no side effects.",syn:["disprove","rebut","invalidate"],tip:"Stronger than disagree with. Refuting means actually disproving, not just objecting."},
+      {word:"Discern",pos:"v.",phon:"dih-SURN",def:"To notice or understand something that is not obvious at first.",ex:"It took a second reading to discern the report's real conclusion.",syn:["perceive","detect","distinguish"],tip:"Implies effort or skill in noticing. You discern something subtle, not something obvious."},
+      {word:"Ambiguous",pos:"adj.",phon:"am-BIG-yoo-us",def:"Open to more than one interpretation; unclear in meaning.",ex:"The contract's ambiguous wording led both sides to read it differently.",syn:["vague","unclear","equivocal"],tip:"About meaning, not uncertainty of fact. An ambiguous sentence can be read two valid ways."},
+      {word:"Arbitrary",pos:"adj.",phon:"AR-bih-trair-ee",def:"Based on random choice rather than reason or system.",ex:"Without clear guidelines, the deadline felt arbitrary to the team.",syn:["random","capricious","unsystematic"],tip:"A useful criticism. Calling a rule arbitrary questions whether it has any real justification."},
+      {word:"Objective",pos:"adj.",phon:"ob-JEK-tiv",def:"Based on facts rather than personal feelings or opinions.",ex:"The editor asked for an objective account of the meeting, not her personal take.",syn:["impartial","unbiased","neutral"],tip:"Pairs naturally opposite subjective. Useful for distinguishing fact from interpretation."},
+      {word:"Premise",pos:"n.",phon:"PREM-iss",def:"A statement assumed to be true and used as the basis for an argument.",ex:"The whole proposal rested on the premise that user numbers would keep growing.",syn:["assumption","basis","foundation"],tip:"If a premise is false, everything built on it is in question, even with sound logic."},
+      {word:"Inference",pos:"n.",phon:"IN-fer-ens",def:"A conclusion reached based on evidence and reasoning rather than direct statement.",ex:"From the empty parking lot, she made the inference that the office was closed.",syn:["deduction","conclusion","assumption"],tip:"Distinguishes what was actually said from what you reasonably concluded on your own."},
+      {word:"Fallacy",pos:"n.",phon:"FAL-uh-see",def:"A mistaken belief, especially one based on flawed reasoning.",ex:"It is a common fallacy that more meetings always mean better communication.",syn:["misconception","myth","error"],tip:"Targets flawed logic specifically, not just any wrong idea."},
+      {word:"Contentious",pos:"adj.",phon:"kun-TEN-shus",def:"Likely to cause disagreement or argument.",ex:"Remote work policy became the most contentious topic at the all-hands meeting.",syn:["controversial","disputed","divisive"],tip:"Describes a topic that reliably sparks debate, not just one that is difficult."},
+      {word:"Nuanced",pos:"adj.",phon:"NOO-ahnsd",def:"Involving subtle distinctions or shades of meaning.",ex:"Her nuanced review acknowledged both the film's strengths and its clear flaws.",syn:["subtle","refined","layered"],tip:"Praises an analysis for avoiding oversimplification, the opposite of black-and-white thinking."},
+      {word:"Dichotomy",pos:"n.",phon:"dy-KOT-uh-mee",def:"A division between two things that are presented as opposite or entirely different.",ex:"The debate set up a false dichotomy between growth and sustainability.",syn:["contrast","divide","split"],tip:"Calling something a false dichotomy means more options actually exist than the two given."},
+      {word:"Juxtapose",pos:"v.",phon:"JUK-stuh-poz",def:"To place two things side by side to highlight a contrast.",ex:"The report juxtaposed last year's numbers with this year's to make the decline obvious.",syn:["contrast","compare","place alongside"],tip:"Implies a deliberate placement designed to make a difference stand out."},
+      {word:"Skeptical",pos:"adj.",phon:"SKEP-tih-kul",def:"Having doubts about a claim; not easily convinced.",ex:"Investors remained skeptical of the forecast until they saw actual revenue.",syn:["doubtful","dubious","unconvinced"],tip:"A measured alternative to don't believe. It implies openness to being persuaded by better evidence."},
+      {word:"Tenable",pos:"adj.",phon:"TEN-uh-bul",def:"Able to be defended or maintained against objection.",ex:"Once the numbers came in, the original budget was no longer tenable.",syn:["defensible","sustainable","justifiable"],tip:"Most often used in the negative, as in no longer tenable, to say a position must change."},
+      {word:"Valid",pos:"adj.",phon:"VAL-id",def:"Well-grounded and logically sound.",ex:"She raised a valid concern about the timeline that the team had not considered.",syn:["sound","legitimate","well-founded"],tip:"In arguments, valid judges the logic. A valid argument can still have a false conclusion."},
+      {word:"Unequivocal",pos:"adj.",phon:"un-ih-KWIV-uh-kul",def:"Leaving no doubt; completely clear.",ex:"The board gave an unequivocal no to the proposed merger.",syn:["unambiguous","clear-cut","definite"],tip:"Stronger than clear. Used when you want to rule out any possible misreading."},
+      {word:"Rationale",pos:"n.",phon:"rash-uh-NAL",def:"The set of reasons or logical basis for a decision or action.",ex:"The memo laid out the rationale behind cutting the marketing budget.",syn:["reasoning","justification","basis"],tip:"Asks for the why behind a decision, distinct from the decision itself."}
+    ],
+    description:[
+      {word:"Ubiquitous",pos:"adj.",phon:"yoo-BIK-wih-tus",def:"Present or found everywhere.",ex:"Smartphones have become so ubiquitous that public phones are nearly extinct.",syn:["omnipresent","pervasive","universal"],tip:"Slightly stronger than common. It implies you would struggle to find a place without it."},
+      {word:"Pervasive",pos:"adj.",phon:"per-VAY-siv",def:"Spreading widely throughout a place, group, or time.",ex:"A pervasive sense of uncertainty slowed hiring across the industry.",syn:["widespread","prevalent","rampant"],tip:"Often used for something intangible, like an attitude or feeling, spreading through a system."},
+      {word:"Meticulous",pos:"adj.",phon:"muh-TIK-yoo-lus",def:"Showing great attention to detail; very careful and precise.",ex:"The editor's meticulous notes caught errors three other readers had missed.",syn:["precise","thorough","painstaking"],tip:"A strong compliment for careful work, though it can turn negative if it implies obsessiveness."},
+      {word:"Succinct",pos:"adj.",phon:"suk-SINKT",def:"Expressed clearly and in few words.",ex:"Her succinct summary said in two sentences what the report took ten pages to explain.",syn:["concise","brief","to the point"],tip:"Praises efficiency of language. A succinct answer wastes no words but loses no meaning."},
+      {word:"Lucid",pos:"adj.",phon:"LOO-sid",def:"Expressed clearly and easy to understand.",ex:"Even the most technical section of the paper was written in lucid prose.",syn:["clear","coherent","comprehensible"],tip:"Often used for writing or explanations that make a complex topic feel simple."},
+      {word:"Salient",pos:"adj.",phon:"SAY-lee-unt",def:"Most noticeable or important.",ex:"The consultant's report highlighted the three most salient risks to the plan.",syn:["prominent","key","notable"],tip:"Useful for pulling out what matters most from a large amount of information."},
+      {word:"Subtle",pos:"adj.",phon:"SUT-ul",def:"Not immediately obvious; delicate or understated.",ex:"There was a subtle shift in tone once the client mentioned the budget.",syn:["understated","nuanced","faint"],tip:"Something subtle rewards attention. It is real, just easy to miss on a first pass."},
+      {word:"Profound",pos:"adj.",phon:"pruh-FOWND",def:"Very great or intense; showing deep insight.",ex:"The policy had a more profound effect on small businesses than anyone predicted.",syn:["deep","significant","far-reaching"],tip:"Works for both impact, as in profound effect, and thought, as in profound insight."},
+      {word:"Prolific",pos:"adj.",phon:"pruh-LIF-ik",def:"Producing a large quantity of work or output.",ex:"The prolific author published four novels in three years.",syn:["productive","fruitful","abundant"],tip:"Describes volume of output, not quality. A prolific writer is not automatically a great one."},
+      {word:"Versatile",pos:"adj.",phon:"VER-suh-tul",def:"Able to adapt to many different functions or situations.",ex:"The versatile fabric worked equally well for jackets and upholstery.",syn:["adaptable","flexible","multipurpose"],tip:"Praises range. A versatile employee, tool, or material handles more than one kind of job well."},
+      {word:"Resilient",pos:"adj.",phon:"rih-ZIL-yunt",def:"Able to recover quickly from difficulty.",ex:"The local economy proved resilient, recovering faster than analysts expected.",syn:["tough","adaptable","hardy"],tip:"Focuses on bouncing back after a setback, not on avoiding setbacks altogether."},
+      {word:"Transient",pos:"adj.",phon:"TRAN-zee-unt",def:"Lasting only for a short time.",ex:"The pain relief from the medication was transient, fading within an hour.",syn:["temporary","fleeting","short-lived"],tip:"Neutral and factual. Useful for describing something brief without judging it good or bad."},
+      {word:"Ephemeral",pos:"adj.",phon:"ih-FEM-er-ul",def:"Lasting for a very short time.",ex:"Social media trends are often ephemeral, forgotten within a week.",syn:["fleeting","momentary","short-lived"],tip:"Stronger and more literary than transient. Often used for beauty or fame that fades fast."},
+      {word:"Mundane",pos:"adj.",phon:"mun-DAYN",def:"Lacking excitement; ordinary.",ex:"Between the big decisions, most of the job was mundane paperwork.",syn:["routine","ordinary","humdrum"],tip:"Neutral to slightly negative. Describes the unglamorous parts of daily life or work."},
+      {word:"Esoteric",pos:"adj.",phon:"es-uh-TAIR-ik",def:"Understood by only a small number of people with specialized knowledge.",ex:"The debate over compiler design felt esoteric to anyone outside the engineering team.",syn:["obscure","specialized","niche"],tip:"Not a criticism by itself. It just flags that the audience for something is narrow."},
+      {word:"Pragmatic",pos:"adj.",phon:"prag-MAT-ik",def:"Dealing with problems in a practical, realistic way.",ex:"Instead of debating the ideal solution, she took a pragmatic approach and shipped what worked.",syn:["practical","sensible","realistic"],tip:"Often contrasted with idealistic. It praises workable solutions over perfect ones."},
+      {word:"Candid",pos:"adj.",phon:"KAN-did",def:"Honest and direct, even about difficult topics.",ex:"The manager was candid about the risks before anyone signed off on the plan.",syn:["frank","forthright","straightforward"],tip:"A positive word for honesty. It implies openness, not rudeness."},
+      {word:"Discerning",pos:"adj.",phon:"dih-SUR-ning",def:"Showing good judgment, especially about quality.",ex:"A discerning editor cut the weakest third of the manuscript without hesitation.",syn:["perceptive","judicious","astute"],tip:"A compliment. It describes someone who reliably tells good from mediocre."},
+      {word:"Astute",pos:"adj.",phon:"uh-STOOT",def:"Having sharp judgment; quick to notice and understand things.",ex:"Her astute observation about the pricing model saved the company a costly mistake.",syn:["shrewd","perceptive","sharp"],tip:"Praises practical intelligence, especially spotting what matters before others do."},
+      {word:"Comprehensive",pos:"adj.",phon:"kom-prih-HEN-siv",def:"Complete and including everything necessary.",ex:"The onboarding guide was comprehensive enough to answer every question a new hire had.",syn:["thorough","exhaustive","complete"],tip:"Useful for describing coverage. A comprehensive report leaves no major gaps."}
+    ],
+    process:[
+      {word:"Evolve",pos:"v.",phon:"ih-VOLV",def:"To develop gradually over time.",ex:"The product evolved from a simple to-do list into a full project-management tool.",syn:["develop","progress","mature"],tip:"Implies gradual, often unplanned change, rather than a single deliberate decision."},
+      {word:"Catalyst",pos:"n.",phon:"KAT-uh-list",def:"Something that causes a significant change or event to happen.",ex:"The failed launch became the catalyst for a complete rethink of the product.",syn:["trigger","spark","impetus"],tip:"The catalyst itself is often not part of the outcome. It just sets the change in motion."},
+      {word:"Precedent",pos:"n.",phon:"PRESS-ih-dent",def:"An earlier example or case used as a guide for later decisions.",ex:"Approving one exception set a precedent that other clients quickly cited.",syn:["example","model","benchmark"],tip:"Common in the phrase set a precedent. Decisions often outlast their original context."},
+      {word:"Culminate",pos:"v.",phon:"KUL-mih-nayt",def:"To reach a final, climactic point after a series of events.",ex:"Months of negotiation culminated in a signed contract on Friday afternoon.",syn:["conclude","climax","come to a head"],tip:"Always describes the end of a build-up. Something culminates in a result."},
+      {word:"Perpetuate",pos:"v.",phon:"per-PET-yoo-ayt",def:"To cause something to continue, especially something negative.",ex:"Vague job postings perpetuate confusion about what the role actually involves.",syn:["prolong","sustain","extend"],tip:"Usually carries a critical tone. Perpetuating a problem means letting it continue unnecessarily."},
+      {word:"Exacerbate",pos:"v.",phon:"ig-ZAS-er-bayt",def:"To make a problem or situation worse.",ex:"Delaying the repair only exacerbated the water damage.",syn:["worsen","aggravate","intensify"],tip:"Always negative. You exacerbate a problem, never a benefit."},
+      {word:"Ameliorate",pos:"v.",phon:"uh-MEEL-yuh-rayt",def:"To make a bad situation better.",ex:"Flexible deadlines helped ameliorate the stress of the busy season.",syn:["improve","alleviate","ease"],tip:"A formal opposite of exacerbate. Useful in writing about policy or hardship."},
+      {word:"Undermine",pos:"v.",phon:"un-der-MYNE",def:"To weaken something gradually, often secretly.",ex:"Constant last-minute changes undermined the team's confidence in the plan.",syn:["weaken","erode","sabotage"],tip:"Implies a slow, sometimes indirect weakening rather than an obvious, sudden attack."},
+      {word:"Reinforce",pos:"v.",phon:"ree-in-FORSS",def:"To strengthen or support something further.",ex:"The follow-up email reinforced the key points from the meeting.",syn:["strengthen","bolster","support"],tip:"Works for physical structures and abstract ideas alike, such as a wall or an argument."},
+      {word:"Foster",pos:"v.",phon:"FOS-ter",def:"To encourage the development of something over time.",ex:"Open office hours helped foster more honest conversations between staff and management.",syn:["nurture","cultivate","promote"],tip:"Gentler than promote. It implies patient, ongoing encouragement rather than a one-time push."},
+      {word:"Cultivate",pos:"v.",phon:"KUL-tih-vayt",def:"To develop or improve something through deliberate effort.",ex:"The firm spent years cultivating relationships with local suppliers.",syn:["nurture","develop","foster"],tip:"Implies patience and intention. You cultivate a skill or relationship without rushing it."},
+      {word:"Deviate",pos:"v.",phon:"DEE-vee-ayt",def:"To depart from an established course, standard, or plan.",ex:"The pilot had to deviate from the flight path to avoid the storm.",syn:["diverge","stray","depart"],tip:"Neutral by default, but often implies a plan was not followed exactly."},
+      {word:"Fluctuate",pos:"v.",phon:"FLUK-choo-ayt",def:"To rise and fall irregularly in amount or quality.",ex:"Demand fluctuated so much that the store struggled to plan inventory.",syn:["vary","oscillate","waver"],tip:"Implies repeated, often unpredictable change, not a single one-time shift."},
+      {word:"Stagnant",pos:"adj.",phon:"STAG-nunt",def:"Not developing or progressing; inactive.",ex:"Wages stayed stagnant for three years while costs kept rising.",syn:["motionless","inactive","dormant"],tip:"Often paired with wages, growth, or water: anything that should move but does not."},
+      {word:"Volatile",pos:"adj.",phon:"VOL-uh-tul",def:"Likely to change suddenly and unpredictably.",ex:"The volatile stock swung ten percent in a single afternoon.",syn:["unstable","erratic","unpredictable"],tip:"Applies to markets, moods, and situations alike, always implying risk in the instability."},
+      {word:"Iterate",pos:"v.",phon:"IT-uh-rayt",def:"To repeat a process, refining it a little each time.",ex:"The design team iterated on the homepage five times before settling on a final version.",syn:["refine","revise","repeat"],tip:"Implies improvement through repetition, not just doing the same thing over again."},
+      {word:"Adapt",pos:"v.",phon:"uh-DAPT",def:"To adjust to new conditions.",ex:"The restaurant adapted its menu once delivery became half its business.",syn:["adjust","modify","acclimate"],tip:"A flexible, all-purpose word for change in response to circumstances."},
+      {word:"Transition",pos:"n. / v.",phon:"tran-ZISH-un",def:"The process of changing from one state or stage to another.",ex:"The company managed a smooth transition to remote work in under a week.",syn:["shift","changeover","conversion"],tip:"Frames change as a process with a beginning and end, not an instant event."},
+      {word:"Converge",pos:"v.",phon:"kun-VURJ",def:"To come together from different directions toward a common point.",ex:"Three separate research teams converged on the same conclusion independently.",syn:["merge","meet","coincide"],tip:"Useful for describing when different people or trends arrive at the same result."},
+      {word:"Intricate",pos:"adj.",phon:"IN-trih-kit",def:"Having many small, complex parts or details.",ex:"The contract's intricate clauses required a lawyer to fully untangle.",syn:["complex","elaborate","convoluted"],tip:"Neutral to admiring. It praises complexity as detailed craftsmanship, not as a flaw."}
+    ]
+  };
+
+  var MASTER_LIST = (function(){
+    var keys = Object.keys(BY_CAT);
+    var maxLen = Math.max.apply(null, keys.map(function(k){return BY_CAT[k].length;}));
+    var merged = [];
+    for (var i=0;i<maxLen;i++){
+      for (var k=0;k<keys.length;k++){
+        var arr = BY_CAT[keys[k]];
+        if (arr[i]){
+          var w = Object.assign({}, arr[i], {cat:keys[k]});
+          merged.push(w);
+        }
+      }
+    }
+    merged.forEach(function(w, idx){ w.id = idx+1; });
+    return merged;
+  })();
+
+  function getWord(id){ return MASTER_LIST.filter(function(w){return w.id===id;})[0]; }
+
+  /* ---------- State ---------- */
+  var STORAGE_KEY = "vocab_state_v1";
+
+  function defaultState(){
+    return { wordsPerDay:3, streak:0, longestStreak:0, lastActiveDate:null, seenIds:[], todaysIds:[], reviewDay:false, progress:{} };
+  }
+
+  function todayStr(){ return new Date().toLocaleDateString('en-CA'); }
+  function yesterdayStr(){ return new Date(Date.now()-86400000).toLocaleDateString('en-CA'); }
+
+  async function loadState(){
+    try{
+      var res = await window.storage.get(STORAGE_KEY, false);
+      if (res && res.value) return JSON.parse(res.value);
+    }catch(e){ /* first run */ }
+    return defaultState();
+  }
+  async function saveState(state){
+    try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state), false); }
+    catch(e){ console.error("Could not save progress", e); }
+  }
+
+  function ensureTodaysBatch(state){
+    var today = todayStr();
+    if (state.lastActiveDate === today) return;
+
+    if (state.lastActiveDate === yesterdayStr()) state.streak += 1;
+    else state.streak = 1;
+    state.longestStreak = Math.max(state.longestStreak, state.streak);
+
+    var remaining = MASTER_LIST.filter(function(w){ return state.seenIds.indexOf(w.id) === -1; });
+    var batch;
+    if (remaining.length > 0){
+      batch = remaining.slice(0, state.wordsPerDay).map(function(w){ return w.id; });
+      batch.forEach(function(id){
+        state.seenIds.push(id);
+        state.progress[id] = { correct:0, incorrect:0, confirmed:false, introducedOn:today };
+      });
+      state.reviewDay = false;
+    } else {
+      var sorted = state.seenIds.slice().sort(function(a,b){
+        var pa = state.progress[a], pb = state.progress[b];
+        return (pa.correct - pa.incorrect) - (pb.correct - pb.incorrect);
+      });
+      batch = sorted.slice(0, Math.max(state.wordsPerDay,1));
+      batch.forEach(function(id){ state.progress[id].confirmed = false; });
+      state.reviewDay = true;
+    }
+    state.todaysIds = batch;
+    state.lastActiveDate = today;
+  }
+
+  function isMastered(p){ return p && p.correct >= 3 && p.correct > p.incorrect; }
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+
+  function buildOptions(word){
+    var sameCat = MASTER_LIST.filter(function(w){return w.cat===word.cat && w.id!==word.id;});
+    var others = MASTER_LIST.filter(function(w){return w.cat!==word.cat && w.id!==word.id;});
+    var pool = shuffle(sameCat).slice(0,3);
+    if (pool.length < 3) pool = pool.concat(shuffle(others).slice(0, 3-pool.length));
+    return shuffle([word].concat(pool)).map(function(w){return w.word;});
+  }
+
+  /* ---------- App state (in-memory UI state) ---------- */
+  var APP = {
+    ready:false,
+    state:null,
+    tab:'today',
+    settingsOpen:false,
+    confirmingReset:false,
+    archiveQuery:'',
+    expandedId:null,
+    quiz:null
+  };
+
+  var root = document.getElementById('app');
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  /* ---------- Rendering ---------- */
+  function render(){
+    if (!APP.ready){
+      root.innerHTML = '<div class="wrap"><p style="color:rgba(239,231,208,0.6);">Loading your words…</p></div>';
+      return;
+    }
+    var s = APP.state;
+    var html = '<div class="wrap">';
+    html += renderHeader(s);
+    html += renderStats(s);
+    html += renderTabs();
+    if (APP.tab === 'today') html += renderToday(s);
+    else if (APP.tab === 'review') html += renderReview(s);
+    else html += renderArchive(s);
+    html += '</div>';
+    if (APP.settingsOpen) html += renderSettings(s);
+    root.innerHTML = html;
+  }
+
+  function renderHeader(s){
+    return ''+
+      '<div class="app-header">'+
+        '<div>'+
+          '<h1 class="app-title">WordADay</h1>'+
+          '<p class="app-sub">A daily practice for precise, professional English.</p>'+
+        '</div>'+
+        '<button class="icon-btn" data-action="settings-open" aria-label="Settings">'+gearIcon()+'</button>'+
+      '</div>';
+  }
+
+  function gearIcon(){
+    return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+  }
+
+  function renderStats(s){
+    var learned = s.seenIds.length;
+    var mastered = s.seenIds.filter(function(id){return isMastered(s.progress[id]);}).length;
+    return ''+
+      '<div class="stats-row">'+
+        '<div class="stat"><strong>'+s.streak+'</strong><span>day streak</span></div>'+
+        '<div class="stat"><strong>'+learned+'</strong><span>words learned</span></div>'+
+        '<div class="stat"><strong>'+mastered+'</strong><span>mastered</span></div>'+
+      '</div>';
+  }
+
+  function renderTabs(){
+    var tabs = [['today','Today'],['review','Review'],['archive','Archive']];
+    return '<div class="tabs">' + tabs.map(function(t){
+      return '<button class="tab-btn'+(APP.tab===t[0]?' active':'')+'" data-action="tab" data-tab="'+t[0]+'">'+t[1]+'</button>';
+    }).join('') + '</div>';
+  }
+
+  function fmtDate(){
+    return new Date().toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
+  }
+
+  function renderToday(s){
+    var ids = s.todaysIds || [];
+    var doneCount = ids.filter(function(id){return s.progress[id] && s.progress[id].confirmed;}).length;
+    var pct = ids.length ? Math.round((doneCount/ids.length)*100) : 0;
+    var html = '<div class="section-lede">';
+    html += '<p class="section-date">'+fmtDate()+'</p>';
+    if (s.reviewDay){
+      html += '<div class="review-note">You have been through the full collection. Today\'s picks are a refresher on the words that need it most.</div>';
+    }
+    html += '<div class="progress-line"><span>'+doneCount+' of '+ids.length+' reviewed today</span></div>';
+    html += '<div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div>';
+    html += '</div>';
+
+    if (!ids.length){
+      html += '<div class="empty"><p>Nothing scheduled yet</p><p>Something went wrong generating today\'s words. Try reopening the page.</p></div>';
+      return html;
+    }
+
+    ids.forEach(function(id, i){
+      var w = getWord(id);
+      var p = s.progress[id];
+      var accent = CATS[w.cat].accent;
+      html += '<div class="card'+(p.confirmed?' confirmed':'')+'" style="--accent:'+accent+'">';
+      html += '<p class="card-eyebrow">Word '+(i+1)+' of '+ids.length+'</p>';
+      html += '<div class="card-head"><span class="card-word">'+escapeHtml(w.word)+'</span><span class="card-meta">'+escapeHtml(w.pos)+' &middot; /'+escapeHtml(w.phon)+'/</span></div>';
+      html += '<p class="card-cat" style="color:'+accent+'">'+CATS[w.cat].name+'</p>';
+      html += '<p class="card-def">'+escapeHtml(w.def)+'</p>';
+      html += '<p class="card-example">'+escapeHtml(w.ex)+'</p>';
+      html += '<p class="card-syn"><b>Similar:</b> '+w.syn.map(escapeHtml).join(', ')+'</p>';
+      html += '<p class="card-tip"><b>Usage note:</b> '+escapeHtml(w.tip)+'</p>';
+      html += '<div class="card-footer">';
+      if (p.confirmed) html += '<span class="btn-done">Reviewed &#10003;</span>';
+      else html += '<button class="btn btn-primary" data-action="confirm" data-id="'+id+'">Got it</button>';
+      html += '</div></div>';
+    });
+    return html;
+  }
+
+  function renderReview(s){
+    var q = APP.quiz;
+    if (!s.seenIds.length){
+      return '<div class="empty"><p>Nothing to review yet</p><p>Check off a few of today\'s words first, or come back tomorrow once you have some words under your belt.</p></div>';
+    }
+    if (!q){
+      return ''+
+        '<div class="section-lede"><p class="section-date">Multiple choice, pulled from every word you have seen so far.</p></div>'+
+        '<button class="btn btn-primary btn-block" data-action="start-quiz">Start review</button>';
+    }
+    if (q.finished){
+      var html = '<div class="quiz-card">';
+      html += '<div class="quiz-summary-row"><span>Session complete</span><strong>'+q.score+'/'+q.ids.length+'</strong></div>';
+      if (q.wrongIds.length){
+        html += '<p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:0.5rem;">Worth another look:</p>';
+        q.wrongIds.forEach(function(id){
+          var w = getWord(id);
+          html += '<div class="review-list-item"><b>'+escapeHtml(w.word)+'</b> — '+escapeHtml(w.def)+'</div>';
+        });
+      } else {
+        html += '<p style="font-size:0.9rem;color:var(--text-muted);">Clean sweep. Nice work.</p>';
+      }
+      html += '<div class="quiz-actions"><button class="btn btn-ghost-light" data-action="quiz-exit" style="margin-right:0.5rem;">Done</button><button class="btn btn-primary" data-action="start-quiz">Review again</button></div>';
+      html += '</div>';
+      return html;
+    }
+    var word = getWord(q.ids[q.index]);
+    var html2 = '<div class="quiz-card">';
+    html2 += '<p class="quiz-progress">Question '+(q.index+1)+' of '+q.ids.length+' &middot; score '+q.score+'</p>';
+    html2 += '<p class="quiz-prompt">Which word means: <em>'+escapeHtml(word.def)+'</em></p>';
+    html2 += '<div class="quiz-options">';
+    q.options.forEach(function(opt){
+      var cls = 'quiz-opt';
+      var dis = q.answered ? 'disabled' : '';
+      if (q.answered){
+        if (opt === word.word) cls += ' correct';
+        else if (opt === q.selected) cls += ' incorrect';
+      }
+      html2 += '<button class="'+cls+'" '+dis+' data-action="quiz-answer" data-word="'+escapeHtml(opt)+'">'+escapeHtml(opt)+'</button>';
+    });
+    html2 += '</div>';
+    if (q.answered){
+      var good = q.selected === word.word;
+      html2 += '<p class="quiz-feedback '+(good?'good':'bad')+'">'+(good ? 'Correct.' : 'Not quite — the answer is '+escapeHtml(word.word)+'.')+'</p>';
+      html2 += '<div class="quiz-actions"><button class="btn btn-primary" data-action="quiz-next">'+(q.index+1 < q.ids.length ? 'Next word' : 'See results')+'</button></div>';
+    }
+    html2 += '</div>';
+    return html2;
+  }
+
+  function renderArchive(s){
+    if (!s.seenIds.length){
+      return '<div class="empty"><p>Your archive is empty</p><p>Words you have seen on the Today tab will collect here for review any time.</p></div>';
+    }
+    var query = APP.archiveQuery.trim().toLowerCase();
+    var items = s.seenIds.map(getWord).filter(function(w){
+      return !query || w.word.toLowerCase().indexOf(query) !== -1;
+    }).sort(function(a,b){ return a.word.localeCompare(b.word); });
+
+    var html = '<input type="text" class="archive-search" placeholder="Search your words" value="'+escapeHtml(APP.archiveQuery)+'" data-action="archive-search">';
+    html += '<p class="archive-count">'+items.length+' of '+s.seenIds.length+' words</p>';
+
+    items.forEach(function(w){
+      var p = s.progress[w.id];
+      var accent = CATS[w.cat].accent;
+      var open = APP.expandedId === w.id;
+      html += '<div class="archive-row">';
+      html += '<button class="archive-row-head" data-action="toggle-archive" data-id="'+w.id+'" style="width:100%;background:none;border:none;color:var(--paper);">';
+      html += '<span class="cat-dot" style="--accent:'+accent+'"></span>';
+      html += '<span class="archive-word">'+escapeHtml(w.word)+'</span>';
+      html += '<span class="archive-badge'+(isMastered(p)?' mastered':'')+'">'+(isMastered(p)?'Mastered':'Learning')+'</span>';
+      html += '<span class="archive-caret">'+(open?'\u25BE':'\u25B8')+'</span>';
+      html += '</button>';
+      if (open){
+        html += '<div class="archive-detail">';
+        html += '<p class="card-cat" style="color:'+accent+'">'+CATS[w.cat].name+' &middot; '+w.pos+' &middot; /'+escapeHtml(w.phon)+'/</p>';
+        html += '<p class="card-def">'+escapeHtml(w.def)+'</p>';
+        html += '<p class="card-example" style="--accent:'+accent+'">'+escapeHtml(w.ex)+'</p>';
+        html += '<p class="card-syn"><b>Similar:</b> '+w.syn.map(escapeHtml).join(', ')+'</p>';
+        html += '<p class="card-tip"><b>Usage note:</b> '+escapeHtml(w.tip)+'</p>';
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    return html;
+  }
+
+  function renderSettings(s){
+    var html = '<div class="overlay" data-action="settings-close">';
+    html += '<div class="modal" onclick="event.stopPropagation()">';
+    html += '<h2>Settings</h2>';
+    html += '<p class="hint">Choose how many new words to introduce each day. Takes effect starting tomorrow.</p>';
+    html += '<div class="wpd-row">';
+    for (var n=1;n<=5;n++){
+      html += '<button class="wpd-btn'+(s.wordsPerDay===n?' active':'')+'" data-action="set-wpd" data-value="'+n+'">'+n+'</button>';
+    }
+    html += '</div>';
+    html += '<div class="modal-divider"></div>';
+    html += '<div class="danger-zone">';
+    html += '<p>Resetting clears your streak, archive, and all review history. This cannot be undone.</p>';
+    if (!APP.confirmingReset){
+      html += '<button class="btn btn-danger" data-action="reset-ask">Reset all progress</button>';
+    } else {
+      html += '<div class="confirm-row"><button class="btn btn-danger" data-action="reset-confirm">Yes, reset everything</button><button class="btn btn-ghost-light" data-action="reset-cancel">Cancel</button></div>';
+    }
+    html += '</div>';
+    html += '<div class="modal-close-row"><button class="btn btn-ghost-light" data-action="settings-close">Close</button></div>';
+    html += '</div></div>';
+    return html;
+  }
+
+  /* ---------- Actions ---------- */
+  async function confirmWord(id){
+    APP.state.progress[id].confirmed = true;
+    await saveState(APP.state);
+    render();
+  }
+
+  function startQuiz(){
+    var pool = shuffle(APP.state.seenIds);
+    var ids = pool.slice(0, Math.min(10, pool.length));
+    var firstWord = getWord(ids[0]);
+    APP.quiz = { ids:ids, index:0, score:0, wrongIds:[], answered:false, selected:null, finished:false, options:buildOptions(firstWord) };
+    render();
+  }
+
+  async function answerQuiz(selected){
+    var q = APP.quiz;
+    if (q.answered) return;
+    var word = getWord(q.ids[q.index]);
+    var correct = selected === word.word;
+    q.answered = true;
+    q.selected = selected;
+    var p = APP.state.progress[word.id];
+    if (correct){ p.correct += 1; q.score += 1; }
+    else { p.incorrect += 1; if (q.wrongIds.indexOf(word.id) === -1) q.wrongIds.push(word.id); }
+    await saveState(APP.state);
+    render();
+  }
+
+  function nextQuestion(){
+    var q = APP.quiz;
+    q.index += 1;
+    if (q.index >= q.ids.length){
+      q.finished = true;
+    } else {
+      q.answered = false;
+      q.selected = null;
+      q.options = buildOptions(getWord(q.ids[q.index]));
+    }
+    render();
+  }
+
+  async function setWordsPerDay(n){
+    APP.state.wordsPerDay = n;
+    await saveState(APP.state);
+    render();
+  }
+
+  async function resetProgress(){
+    APP.state = defaultState();
+    ensureTodaysBatch(APP.state);
+    await saveState(APP.state);
+    APP.confirmingReset = false;
+    APP.settingsOpen = false;
+    APP.tab = 'today';
+    render();
+  }
+
+  /* ---------- Event delegation ---------- */
+  root.addEventListener('click', function(e){
+    var el = e.target.closest('[data-action]');
+    if (!el) return;
+    var action = el.getAttribute('data-action');
+
+    if (action === 'tab'){ APP.tab = el.getAttribute('data-tab'); APP.quiz = null; render(); }
+    else if (action === 'settings-open'){ APP.settingsOpen = true; APP.confirmingReset = false; render(); }
+    else if (action === 'settings-close'){ APP.settingsOpen = false; APP.confirmingReset = false; render(); }
+    else if (action === 'set-wpd'){ setWordsPerDay(parseInt(el.getAttribute('data-value'),10)); }
+    else if (action === 'reset-ask'){ APP.confirmingReset = true; render(); }
+    else if (action === 'reset-cancel'){ APP.confirmingReset = false; render(); }
+    else if (action === 'reset-confirm'){ resetProgress(); }
+    else if (action === 'confirm'){ confirmWord(parseInt(el.getAttribute('data-id'),10)); }
+    else if (action === 'start-quiz'){ startQuiz(); }
+    else if (action === 'quiz-answer'){ answerQuiz(el.getAttribute('data-word')); }
+    else if (action === 'quiz-next'){ nextQuestion(); }
+    else if (action === 'quiz-exit'){ APP.quiz = null; render(); }
+    else if (action === 'toggle-archive'){
+      var id = parseInt(el.getAttribute('data-id'),10);
+      APP.expandedId = (APP.expandedId === id) ? null : id;
+      render();
+    }
+  });
+
+  root.addEventListener('input', function(e){
+    if (e.target.matches('[data-action="archive-search"]')){
+      APP.archiveQuery = e.target.value;
+      render();
+    }
+  });
+
+  /* ---------- Boot ---------- */
+  (async function init(){
+    var state = await loadState();
+    ensureTodaysBatch(state);
+    await saveState(state);
+    APP.state = state;
+    APP.ready = true;
+    render();
+  })();
+
+})();
+</script>
+</body>
+</html>
